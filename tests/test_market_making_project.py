@@ -87,6 +87,8 @@ class MarketMakingProjectTest(unittest.TestCase):
             "ask_fill",
             "inventory",
             "cash",
+            "cash_ledger",
+            "cash_pnl",
             "mark_to_market_wealth",
             "realized_pnl",
             "unrealized_pnl",
@@ -118,9 +120,15 @@ class MarketMakingProjectTest(unittest.TestCase):
             "spread_capture",
             "adverse_selection_cost",
             "final_cash",
+            "final_cash_pnl",
             "final_mark_to_market_wealth",
         }
         self.assertTrue(required_keys.issubset(metrics))
+
+    def test_realized_pnl_is_cash_pnl_compatibility_alias(self) -> None:
+        data = MarketMakingSimulator(config=SimulationConfig(steps=20, seed=9)).run()
+
+        np.testing.assert_allclose(data["realized_pnl"], data["cash_pnl"])
 
     def test_parameter_sweep_returns_non_empty_aggregated_results(self) -> None:
         results = run_parameter_sweep(

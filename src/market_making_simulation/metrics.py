@@ -56,6 +56,7 @@ def compute_metrics(data: pd.DataFrame) -> dict[str, float]:
             "adverse_selection_cost": 0.0,
             "inventory_penalty_cost": 0.0,
             "final_cash": 0.0,
+            "final_cash_pnl": 0.0,
             "final_mark_to_market_wealth": 0.0,
         }
 
@@ -94,5 +95,6 @@ def compute_metrics(data: pd.DataFrame) -> dict[str, float]:
         "adverse_selection_cost": _last_value(data, "adverse_selection_cost"),
         "inventory_penalty_cost": _last_value(data, "inventory_penalty_cost"),
         "final_cash": _last_value(data, "cash"),
+        "final_cash_pnl": _last_value(data, "cash_pnl"),
         "final_mark_to_market_wealth": _last_value(data, "mark_to_market_wealth"),
     }

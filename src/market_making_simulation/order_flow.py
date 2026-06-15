@@ -23,8 +23,10 @@ class OrderFlowModel:
     Quote distance is the difference between fair value and the posted quote.
     Tight quotes have small distance and therefore higher fill probability.
     Adverse selection is modeled by increasing ask-fill probability before an
-    upward fair value move and increasing bid-fill probability before a downward
-    fair value move.
+    upward simulated fair value move and increasing bid-fill probability before
+    a downward simulated fair value move. This is a toy data-generating
+    mechanism, not a calibrated order-flow model and not future information
+    available to the quoting strategy.
     """
 
     base_intensity: float = 0.30
@@ -59,7 +61,12 @@ class OrderFlowModel:
         next_fair_value: float,
         rng: np.random.Generator,
     ) -> FillResult:
-        """Draw bid and ask fills for one step of the simulation."""
+        """Draw bid and ask fills for one step of the simulation.
+
+        The simulator passes `next_fair_value` only to generate
+        informed-flow-like fill probabilities. The strategy has already quoted
+        before this call and does not observe the next fair value.
+        """
         bid_distance = current_fair_value - bid_price
         ask_distance = ask_price - current_fair_value
         fair_value_move = next_fair_value - current_fair_value

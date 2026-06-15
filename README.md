@@ -1,6 +1,6 @@
 # Market Making Simulation
 
-Market Making Simulation is a Python 3.12 project for studying a simple electronic market-making game. It models stochastic fair value, bid/ask quoting, random order arrivals, inventory, cash, mark-to-market PnL, spread capture, adverse selection, and inventory-aware quoting.
+Market Making Simulation is a Python 3.12 toy simulator for studying a simple electronic market-making game. It models stochastic fair value, bid/ask quoting, random order arrivals, inventory, cash, mark-to-market wealth, spread capture, adverse selection diagnostics, and inventory-aware quoting.
 
 The project is intentionally compact enough to read in an interview, but it runs real simulations and parameter sweeps rather than only providing boilerplate.
 
@@ -26,6 +26,18 @@ This project is not intended to build a profitable trading strategy.
 
 The first version should stay simple. It deliberately avoids deep learning, diffusion models, high-frequency order book data, alpha strategy discovery, complex portfolio optimization, and live trading infrastructure.
 
+## Model Scope and Caveats
+
+This repository is a toy model, not a real trading system. The most important limitations are stated explicitly because they are easy places to overclaim:
+
+- Order flow is hand-specified. The order-arrival intensity is not calibrated from tick data or limit order book data.
+- Adverse selection is simulated by using `next_fair_value` inside the order-flow generator. This is a simulator mechanism for producing informed-flow-like fills, not future information available to the quoting strategy.
+- The model does not include queue position. In real market making, posting a bid or ask does not guarantee a fill; fills depend on queue priority, quantity ahead, cancellations, and latency.
+- The model does not include exchange fees or rebates. Those costs can be material when market-making margins are thin.
+- I track cash and mark-to-market wealth. The realized/unrealized split is simplified; the main PnL measure is cash plus inventory marked to fair value.
+
+See [docs/model_caveats.md](docs/model_caveats.md) for a longer discussion of these limitations and safer interview phrasing.
+
 ## Financial Intuition
 
 A market maker posts a bid and an ask around an estimated fair value. If a sell market order hits the bid, the market maker buys and inventory increases. If a buy market order lifts the ask, the market maker sells and inventory decreases.
@@ -37,9 +49,9 @@ The market maker earns spread capture when trades happen at favorable prices aro
 - Fair value evolves in discrete time.
 - The default fair value process is a Gaussian random walk with optional jumps.
 - An Ornstein-Uhlenbeck mean-reverting model is also available.
-- Fill probability decreases as quotes move farther from fair value.
-- Ask fills become more likely before upward fair value moves.
-- Bid fills become more likely before downward fair value moves.
+- Fill probability decreases as quotes move farther from fair value, using a hand-specified intensity function.
+- Ask fills become more likely before upward simulated fair value moves.
+- Bid fills become more likely before downward simulated fair value moves.
 - The inventory-aware strategy shifts its reservation price by `inventory_penalty * inventory`.
 - PnL is marked to the simulated fair value at every step.
 
@@ -138,6 +150,7 @@ The default commands write:
 - `adverse_selection_cost`: cumulative cost from being filled before fair value moves against the trade.
 - `inventory_penalty_cost`: cumulative quadratic inventory penalty used for diagnostics.
 - `final_cash`: ending cash ledger.
+- `final_cash_pnl`: ending cash ledger relative to initial cash.
 - `final_mark_to_market_wealth`: cash plus inventory valued at fair value.
 
 ## Generated Baseline Results
@@ -150,6 +163,6 @@ The default sweep uses half-spreads `[0.20, 0.40, 0.60, 0.80, 1.00]`, inventory 
 
 This is an educational simulation, not a production trading system or evidence of a tradable edge. The generated PnL numbers come from a toy model and should be read as model diagnostics, not as backtest results or investment advice.
 
-The simulation does not model queue position, latency, exchange fees, rebates, hidden liquidity, order cancellations, partial fills, multiple venues, multi-asset risk, calibrated order flow, or real market microstructure data. It also uses a simplified adverse-selection mechanism based on the simulated next fair-value move, which is useful for controlled experiments but is not directly observable in live trading.
+The simulation does not model queue position, latency, exchange fees, rebates, hidden liquidity, order cancellations, partial fills, multiple venues, multi-asset risk, calibrated order flow, or real market microstructure data. It also uses a simplified adverse-selection mechanism based on the simulated next fair-value move, which is useful for controlled experiments but is not directly observable in live trading and is not available to the quoting strategy.
 
 Useful extensions would include calibrated market order intensities, realistic transaction costs, latency, queue priority, alternative quoting strategies, richer adverse-selection models, and validation against historical limit order book data.

@@ -123,7 +123,7 @@ def adverse_selection_cost(
     bid_filled: bool,
     ask_filled: bool,
 ) -> float:
-    """Measure loss from being filled before the fair value moves against us."""
+    """Diagnostic loss from fills before a simulated adverse fair-value move."""
     cost = 0.0
     if bid_filled:
         cost += max(0.0, quote.bid_price - next_fair_value) * quote.bid_size
@@ -198,7 +198,8 @@ class MarketMakingSimulator:
             cumulative_inventory_penalty_cost += step_inventory_penalty_cost
 
             wealth = cash + inventory * next_fair_value
-            realized_pnl = cash - self.config.initial_cash
+            cash_ledger = cash
+            cash_pnl = cash - self.config.initial_cash
             unrealized_pnl = inventory * next_fair_value - (
                 self.config.initial_inventory * fair_values[0]
             )
@@ -220,8 +221,10 @@ class MarketMakingSimulator:
                     "ask_trade_size": quote.ask_size if fill_result.ask_filled else 0.0,
                     "inventory": inventory,
                     "cash": cash,
+                    "cash_ledger": cash_ledger,
+                    "cash_pnl": cash_pnl,
                     "mark_to_market_wealth": wealth,
-                    "realized_pnl": realized_pnl,
+                    "realized_pnl": cash_pnl,
                     "unrealized_pnl": unrealized_pnl,
                     "total_pnl": total_pnl,
                     "step_spread_capture": trade_update.spread_capture,
